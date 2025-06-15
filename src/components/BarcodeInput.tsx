@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, Scan } from 'lucide-react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { BrowserMultiFormatReader, NotFoundException, Result } from '@zxing/library';
 
 interface BarcodeInputProps {
   onBarcodeSubmit: (barcode: string) => void;
@@ -13,7 +13,7 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   const [scanError, setScanError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
-  // const streamRef = useRef<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const handleSubmit = () => {
     if (!barcodeInput.trim()) return;
@@ -28,34 +28,42 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   };
 
   const startCamera = async () => {
+    console.log ('starting camera')
     try {
       setScanError(null);
       
       // Initialize the code reader
       codeReaderRef.current = new BrowserMultiFormatReader();
       
-      // Get available video input devices
-      const videoInputDevices = await codeReaderRef.current.listVideoInputDevices();
-      
-      if (videoInputDevices.length === 0) {
-        throw new Error('No camera devices found');
+      if (!videoRef.current) {
+        throw new Error('Video element not available');
       }
 
-      // Try to find back camera (environment) first, fallback to first available
-      const selectedDevice = videoInputDevices.find(device => 
-        device.label.toLowerCase().includes('back') || 
-        device.label.toLowerCase().includes('environment')
-      ) || videoInputDevices[0];
+      setIsCameraActive(true);
+      setIsScanning(true);
 
-      if (videoRef.current) {
-        setIsCameraActive(true);
-        setIsScanning(true);
+      // First, try to get available video devices
+      try {
+        const videoInputDevices = await codeReaderRef.current.listVideoInputDevices();
+        console.log('Available cameras:', videoInputDevices);
+        
+        if (videoInputDevices.length === 0) {
+          throw new Error('No camera devices found');
+        }
 
-        // Start decoding from video element
-        codeReaderRef.current.decodeFromVideoDevice(
+        // Try to find back camera (environment) first, fallback to first available
+        const selectedDevice = videoInputDevices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('environment')
+        ) || videoInputDevices[0];
+
+        console.log('Selected camera:', selectedDevice);
+
+        // Start decoding from the selected video device
+        await codeReaderRef.current.decodeFromVideoDevice(
           selectedDevice.deviceId,
           videoRef.current,
-          (result, error) => {
+          (result: Result | undefined, error?: Error) => {
             if (result) {
               // Barcode found!
               const barcodeText = result.getText();
@@ -70,20 +78,75 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
             }
           }
         );
+      } catch (deviceError) {
+        console.log('Device enumeration failed, trying with constraints:', deviceError);
+        
+        // Fallback: try with getUserMedia constraints directly
+        const constraints = {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          videoRef.current!.onloadedmetadata = () => resolve(undefined);
+        });
+
+        // Start decoding from video element with stream
+        codeReaderRef.current.decodeFromVideoElement(
+          videoRef.current).then(
+          (result: Result) => {
+              // Barcode found!
+              const barcodeText = result.getText();
+              setBarcodeInput(barcodeText);
+              stopCamera();
+              alert(`Barcode detected: ${barcodeText}`);
+            }).catch((error) => {
+              if (!(error instanceof NotFoundException)) {
+              console.error('Scan error:', error);
+            }
+          }
+          );
       }
+      
     } catch (error) {
-      console.error('Error accessing camera:', error);
-      setScanError('Unable to access camera. Please ensure you have granted camera permissions.');
+      if (error instanceof Error) {
+        console.error('Error accessing camera:', error);
+        setScanError(`Unable to access camera: ${error.message}. Please ensure you have granted camera permissions.`);
+      } else {
+        console.error('Error accessing camera:', error);
+        setScanError('Unable to access camera: Unknown error. Please ensure you have granted camera permissions.');
+      }
       setIsCameraActive(false);
       setIsScanning(false);
     }
   };
 
   const stopCamera = () => {
+    // Stop ZXing reader
     if (codeReaderRef.current) {
       codeReaderRef.current.reset();
       codeReaderRef.current = null;
     }
+    
+    // Stop media stream if we created one manually
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    // Clear video source
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
     setIsCameraActive(false);
     setIsScanning(false);
     setScanError(null);
