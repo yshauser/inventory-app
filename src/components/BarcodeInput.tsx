@@ -28,19 +28,20 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   };
 
   const startCamera = async () => {
-    console.log ('starting camera')
     try {
       setScanError(null);
+      setIsCameraActive(true);
+      setIsScanning(true);
       
-      // Initialize the code reader
-      codeReaderRef.current = new BrowserMultiFormatReader();
+      // Wait for video element to be available
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       if (!videoRef.current) {
         throw new Error('Video element not available');
       }
 
-      setIsCameraActive(true);
-      setIsScanning(true);
+      // Initialize the code reader
+      codeReaderRef.current = new BrowserMultiFormatReader();
 
       // First, try to get available video devices
       try {
@@ -101,19 +102,18 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
 
         // Start decoding from video element with stream
         codeReaderRef.current.decodeFromVideoElement(
-          videoRef.current).then(
-          (result: Result) => {
-              // Barcode found!
-              const barcodeText = result.getText();
-              setBarcodeInput(barcodeText);
-              stopCamera();
-              alert(`Barcode detected: ${barcodeText}`);
-            }).catch((error) => {
-              if (!(error instanceof NotFoundException)) {
-              console.error('Scan error:', error);
-            }
+          videoRef.current
+        ).then((result: Result) => {
+          // Barcode found!
+          const barcodeText = result.getText();
+          setBarcodeInput(barcodeText);
+          stopCamera();
+          alert(`Barcode detected: ${barcodeText}`);
+        }).catch((error) => {
+          if (!(error instanceof NotFoundException)) {
+            console.error('Scan error:', error);
           }
-          );
+        });
       }
       
     } catch (error) {
