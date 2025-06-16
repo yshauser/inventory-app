@@ -1,0 +1,64 @@
+{
+  "header": {
+    "appTitle": "מלא מחדש",
+    "home": "בית",
+    "log": "תיעוד",
+    "kids": "ילדים",
+    "settings": "הגדרות",
+    "manageUsers": "ניהול משתמשים",
+    "switchUser": "החלף משתמש",
+    "about":"אודות",
+    "close": "סגור"
+  },
+    "about": {
+      "description": "ניהול מלאי",
+      "version": "גרסה",
+      "developer": "מפתח:",
+      "developerName": "יוסי האוזר",
+      "contact": "צור קשר",
+      "appNameLabel": "שם האפליקציה",
+      "emailLabel": "אימייל"
+    },
+    "general": {
+      "guest": "אורח",
+      "barcode": "ברקוד",
+      "category": "קטגוריה",
+      "brand": "מותג",
+      "itemName": "שם המוצר",
+      "pic": "תמונה",
+      "add": "הוספה",
+      "addItemTitle": "הוספת מוצר חדש",
+      "productIcon": "אייקון",
+      "productImageTitle": "תמונת מוצר",
+      "enterBarcode": "הכנס מספר ברקוד",
+      "enterBarcodePlaceholder": "מספר ברקוד...",
+      "enterCategory": "הכנס קטגוריה",
+      "enterBrand": "הכנס מותג",
+      "addItem": "הוסף מוצר",
+      "productFound": "נמצאו פרטי המוצר",
+      "productNotFound": "לא נמצא מידע למוצר הזה",
+      "scanCameraTitle":"סרוק ברקוד עם המצלמה",
+      "scanBarcode": "סרוק ברקוד",
+      "scanning": "סורק...",
+      "scanningInstructions": "לסריקה מקם את הברקוד בתוך המסגרת האדומה"
+    },
+    "buttons":{
+      "cancel": "ביטול",
+      "remove": "הסרה",
+      "add": "הוספה"
+    },
+    "remove": {
+      "remove": "הסר מוצר",
+      "removeWarning": "למחוק את המוצר ? \n (הפעולה אינה הפיכה)"
+    },
+    "search": {
+      "searchPlaceholder": "חיפוש...",
+      "all": "הכל",
+      "inStock": "במלאי",
+      "outOfStock": "אזל מהמלאי"
+    },
+    "itemRow": {
+      "releaseSwipeText": "שחרר לאישור",
+      "swipeText" : " החלק ימינה להוספה • החלק שמאלה להפחתה"
+    }
+  }

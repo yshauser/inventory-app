@@ -1,6 +1,8 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import type { FilterType, Item } from '../types/Item';
+import { useTranslation } from 'react-i18next';
+
 
 interface SearchAndFilterProps {
   searchTerm: string;
@@ -20,6 +22,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   const inStockCount = items.filter(item => item.amountInStock > 0).length;
   const outOfStockCount = items.filter(item => item.amountInStock === 0).length;
 
+  const {t} = useTranslation();
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
       <div className="space-y-3">
@@ -29,7 +33,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search items..."
+            placeholder={t('search.searchPlaceholder')}
             className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -41,7 +45,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
               filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
-            All ({items.length})
+            {t('search.all')} ({items.length})
           </button>
           <button
             onClick={() => setFilter('inStock')}
@@ -49,7 +53,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
               filter === 'inStock' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
-            In Stock ({inStockCount})
+            {t('search.inStock')} ({inStockCount})
           </button>
           <button
             onClick={() => setFilter('outOfStock')}
@@ -57,7 +61,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
               filter === 'outOfStock' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'
             }`}
           >
-            Out of Stock ({outOfStockCount})
+            {t('search.outOfStock')} ({outOfStockCount})
           </button>
         </div>
       </div>

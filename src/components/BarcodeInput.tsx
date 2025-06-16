@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, Scan } from 'lucide-react';
 import { BrowserMultiFormatReader, NotFoundException, Result } from '@zxing/library';
+import { useTranslation } from 'react-i18next';
 
 interface BarcodeInputProps {
   onBarcodeSubmit: (barcode: string) => void;
@@ -14,6 +15,8 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const {t} = useTranslation();
 
   const handleSubmit = () => {
     if (!barcodeInput.trim()) return;
@@ -162,12 +165,12 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
       <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-        Inventory Manager
+        {t('header.appTitle')}
       </h1>
       
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
-          Enter Barcode Number
+          {t('general.enterBarcode')}
         </label>
         <div className="flex gap-2">
           <input
@@ -175,7 +178,7 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
             value={barcodeInput}
             onChange={(e) => setBarcodeInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type barcode number..."
+            placeholder=          {t('general.enterBarcodePlaceholder')}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
@@ -183,13 +186,13 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
             disabled={!barcodeInput.trim()}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            Add
+            {t('buttons.add')}
           </button>
           <button 
             onClick={startCamera}
             disabled={isCameraActive}
             className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            title="Scan barcode with camera"
+            title={t('general.scanCameraTitle')}
           >
             <Camera className="w-4 h-4" />
           </button>
@@ -201,7 +204,7 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 max-w-lg w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Scan Barcode</h3>
+              <h3 className="text-lg font-semibold">{t('general.scanBarcode')}</h3>
               <button
                 onClick={stopCamera}
                 className="p-2 hover:bg-gray-100 rounded-full"
@@ -235,13 +238,13 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
               {isScanning && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center gap-2">
                   <Scan className="w-4 h-4 animate-pulse" />
-                  <span className="text-sm">Scanning...</span>
+                  <span className="text-sm">{t('general.scanning')}</span>
                 </div>
               )}
             </div>
             
             <div className="mt-4 text-sm text-gray-600 text-center">
-              Position the barcode within the red rectangle to scan
+              {t('general.scanningInstructions')}
             </div>
           </div>
         </div>

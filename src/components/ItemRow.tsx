@@ -2,6 +2,8 @@ import React from 'react';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import type { Item } from '../types/Item';
 import { useSwipeGestures } from '../hooks/useSwipeGestures';
+import { useTranslation } from 'react-i18next';
+
 
 interface ItemRowProps {
   item: Item;
@@ -32,6 +34,9 @@ const ItemRow: React.FC<ItemRowProps> = ({
     () => onDecrease(item.barcode), // Swipe left to decrease
     () => onIncrease(item.barcode)  // Swipe right to increase
   );
+  console.log ('item row', {item})
+  
+  const {t} = useTranslation();
 
   return (
     <div className="relative overflow-hidden rounded-lg shadow-sm mb-2">
@@ -73,8 +78,8 @@ const ItemRow: React.FC<ItemRowProps> = ({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 flex-1">
-            <span className="text-2xl">{item.icon}</span>
-            <div className="flex-1 min-w-0">
+          <img src={item.icon} alt="icon" className="w-8 h-8 inline-block" />
+          <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-800 truncate">{item.name}</h3>
               <p className="text-sm text-gray-500">#{item.barcode}</p>
             </div>
@@ -117,7 +122,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
         <div className={`mt-2 text-xs text-center transition-opacity ${
           isDragging ? 'opacity-50' : 'text-gray-400'
         }`}>
-          {isDragging ? 'Release to confirm action' : 'Swipe right to increase • Swipe left to decrease'}
+          {isDragging ? t('itemRow.releaseSwipeText') : t('itemRow.swipeText')}
         </div>
       </div>
     </div>

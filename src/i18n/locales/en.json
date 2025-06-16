@@ -1,0 +1,67 @@
+{
+  "header": {
+    "appTitle": "My stock",
+    "home": "Home",
+    "log": "Log",
+    "scheduled": "Scheduled",
+    "medicines": "Medicines",
+    "kids": "Kids",
+    "settings": "Settings",
+    "manageMedicines": "Manage Medicines",
+    "manageUsers": "Manage Users",
+    "switchUser": "Switch User",
+    "about":"About",
+    "close": "Close"
+  },
+    "about": {
+      "description": "Manage Home Inventory",
+      "version": "Version",
+      "developer": "Developer:",
+      "developerName": "Yossi Hauser",
+      "contact": "Contact",
+      "appNameLabel": "App Name",
+      "emailLabel": "Email"
+    },
+    "general": {
+      "guest": "Guest",
+      "barcode": "Barcode",
+      "category": "Category",
+      "brand": "Brand",
+      "itemName": "Item Name",
+      "pic": "Icon",
+      "add": "Add",
+      "addItemTitle": "Add New Item",
+      "productIcon": "Product Icon",
+      "productImageTitle": "Use product image",
+      "enterBarcode": "Enter Barcode Number",
+      "enterBarcodePlaceholder": "Type barcode number...",
+      "enterCategory": "Enter category",
+      "enterBrand": "Enter brand",
+      "addItem": "Add item",
+      "productFound": "Product found and loaded",
+      "productNotFound": "No data was found for this product",
+      "scanCameraTitle":"Scan barcode with camera",
+      "scanBarcode": "Scan Barcode",
+      "scanning": "Scanning...",
+      "scanningInstructions": "Position the barcode within the red rectangle to scan"
+    },
+    "buttons":{
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "add": "Add"
+    },
+    "remove": {
+      "remove": "Remove Item",
+      "removeWarning": "Are you sure you want to remove this item from your inventory? This action cannot be undone."
+    },
+    "search": {
+      "searchPlaceholder": "Search items...",
+      "all": "All",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock"
+    },
+    "itemRow": {
+      "releaseSwipeText": "Release to confirm action",
+      "swipeText" : "Swipe right to increase • Swipe left to decrease"
+    }
+  }

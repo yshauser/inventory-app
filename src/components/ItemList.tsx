@@ -28,6 +28,7 @@ const ItemList: React.FC<ItemListProps> = ({
       </div>
     );
   }
+  console.log ('items list', {items})
 
   return (
     <div className="space-y-2">
