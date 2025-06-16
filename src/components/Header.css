@@ -1,0 +1,147 @@
+/* Header styles */
+.header {
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */
+  padding: 12px 16px;
+  background: linear-gradient(to right, #4a6fa5, #3a5683);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* RTL support for gradient */
+  /* [dir="rtl"] .header {
+    background: linear-gradient(to left, #4a6fa5, #3a5683);
+  } */
+
+.header-title h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  justify-content: center;
+}
+
+
+.header-title h2 {
+  font-size: 0.85rem;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.9;
+}
+.header-left {
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 480px) {
+  .header-title h1 {
+    font-size: 1.1rem;
+  }
+  
+  .header-title h2 {
+    font-size: 0.75rem;
+  }
+  
+  .header-logo {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Menu dropdown */
+.menu-dropdown {
+position: absolute;
+top: 60px;
+right: 12px; 
+background-color: white;
+color: black;
+border: 1px solid #ccc;
+border-radius: 6px;
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+z-index: 1000;
+padding: 4px 0;
+min-width: 120px;
+}
+
+/* [dir="rtl"] .menu-dropdown { */
+/* left: auto;  Reset for RTL */
+/* right: 12px; Position from the right in RTL */
+/* } */
+
+.menu-dropdown div {
+padding: 10px 14px;
+cursor: pointer;
+text-align: start; /* Align text based on direction */
+}
+
+.menu-dropdown div:hover {
+background-color: #f0f0f0;
+}
+
+.menu-button {
+position: relative;
+background: transparent;
+border: none;
+color: white;
+padding: 5px;
+border-radius: 4px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: background-color 0.2s;
+}
+
+.menu-button:hover, .language-toggle:hover {
+background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal */
+.modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.4);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 2000;
+}
+
+.about-modal-content {
+background: white;
+padding: 24px;
+border-radius: 12px;
+width: 85%;
+max-width: 400px;
+color: black;
+text-align: start; /* Aligns text according to direction */
+
+position: relative;
+}
+
+.about-modal-content h2,
+.about-modal-content p {
+margin: 0.5rem 0;
+text-align: start; /* Aligns text according to direction */
+}
+
+.about-close-button {
+margin-top: 16px;
+padding: 8px 16px;
+background: #4a6fa5;
+color: white;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+text-align: center;
+display: block;
+margin: 1.5rem auto 0; /* Center the button horizontally */
+}

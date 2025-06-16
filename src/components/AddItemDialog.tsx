@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { fetchProductInfo } from '../api/productLookup';
 import type { ProductInfo } from '../api/productLookup';
+import type {Item} from '../types/Item';
 import { useTranslation } from 'react-i18next';
 import '../i18n/i18n';
 
@@ -9,14 +10,18 @@ interface AddItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (name: string, icon: string, category: string, brand: string) => void;
+  onEdit?: (barcode: string, name: string, icon: string, category: string, brand: string) => void;
   barcode: string;
+  editItem?: Item | null; //null for 'add' mode
 }
 
 const AddItemDialog: React.FC<AddItemDialogProps> = ({
   isOpen,
   onClose,
   onAdd,
-  barcode
+  onEdit,
+  barcode,
+  editItem = null
 }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
@@ -28,8 +33,22 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const iconOptions = ['📦', '🍎', '🥛', '🍞', '🧴', '📱', '👕', '📚', '🔧', '💊'];
   const {t} = useTranslation();
 
+  const isEditMode = editItem !== null;
+
   useEffect(() => {
-    if (barcode) {
+    if (isEditMode && editItem) {
+      // Pre-populate form with existing item data
+      setName(editItem.name || '');
+      setCategory(editItem.category || '');
+      setBrand(editItem.brand || '');
+      setSelectedIcon(editItem.icon || '📦');
+      
+      // Check if current icon is a URL (product image)
+      if (editItem.icon && (editItem.icon.startsWith('http') || editItem.icon.startsWith('data:'))) {
+        setUseProductImage(true);
+      }
+    } else if (barcode && !isEditMode) {
+      // Only fetch product info for new items (add mode)
       fetchProductInfo(barcode).then((productInfo) => {
         setProduct(productInfo);
         
@@ -47,11 +66,17 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
         }
       });
     }
-  }, [barcode]);
+  }, [barcode, editItem, isEditMode]);
 
-  const handleAdd = () => {
+  const handleSubmit = () => {
     if (!name.trim()) return;
-    onAdd(name.trim(), selectedIcon, category.trim(), brand.trim());
+    
+    if (isEditMode && onEdit && editItem) {
+      onEdit(editItem.barcode, name.trim(), selectedIcon, category.trim(), brand.trim());
+    } else {
+      onAdd(name.trim(), selectedIcon, category.trim(), brand.trim());
+    }
+    
     resetForm();
   };
 
@@ -74,12 +99,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     setUseProductImage(false);
   };
 
-  const handleUseProductImage = () => {
-    if (product?.imageUrl) {
-      setSelectedIcon(product.imageUrl);
-      setUseProductImage(true);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -87,7 +106,9 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">{t('general.addItemTitle')}</h2>
+          <h2 className="text-lg font-semibold">
+            {isEditMode ? t('general.editItemTitle') : t('general.addItemTitle')}
+          </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
@@ -99,7 +120,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t('general.barcode')}: {barcode}
+              {t('general.barcode')}: {isEditMode ? editItem?.barcode : barcode}
             </label>
           </div>
           
@@ -111,7 +132,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter item name"
+              placeholder={t('general.enterItemName')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
@@ -122,31 +143,23 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
              {t('general.pic')}:
             </label>
             
-            {/* Product Image Option */}
-            {product?.imageUrl && (
+             {/* Current selected icon preview */}
+             {/* {selectedIcon && (selectedIcon.startsWith('http') || selectedIcon.startsWith('data:')) && ( */}
+             {selectedIcon  && (
               <div className="mb-2">
-                <button
-                  onClick={handleUseProductImage}
-                  className={`w-12 h-12 rounded-md border-2 flex items-center justify-center overflow-hidden ${
-                    useProductImage ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                  }`}
-                  title={t('general.productImageTitle')}
-                >
-                  <img 
-                    src={product.imageUrl} 
-                    alt={product.name}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      // Fallback to default icon if image fails to load
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </button>
-                <p className="text-xs text-gray-500 mt-1"> {t('general.productIcon')}</p>
+                <div className="w-12 h-12 rounded-md border-2 border-blue-500 bg-blue-50 flex items-center justify-center overflow-hidden">
+                  {selectedIcon.startsWith('http') ? (
+                    <img src={selectedIcon} alt="icon" className="w-full h-full object-contain" />
+                  ) : (
+                    <span className="text-2xl">{selectedIcon}</span>
+                  )}          
+                </div>
+                {/* <p className="text-xs text-gray-500 mt-1">Current image</p> */}
               </div>
             )}
             
             {/* Emoji Icons Grid */}
+            <p className="text-xs text-gray-500 mt-1">{t('general.optionalIcon')}</p>
             <div className="grid grid-cols-5 gap-2">
               {iconOptions.map((icon) => (
                 <button
@@ -189,7 +202,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           </div>
 
           {/* Product Info Display (Optional - can be removed if not needed) */}
-          {product && (
+          {!isEditMode && product && (
             <div className="bg-gray-50 p-3 rounded-md">
               <p className="text-sm text-gray-600">
                 {product ? t('general.productFound') : t('general.productNotFound')}
@@ -205,12 +218,12 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
               {t('buttons.cancel')}
             </button>
             <button
-              onClick={handleAdd}
+              onClick={handleSubmit}
               disabled={!name.trim()}
               className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {t('general.addItem')}
-            </button>
+              {isEditMode ? t('buttons.save') : t('buttons.addItem')}
+              </button>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Minus, Trash2 } from 'lucide-react';
+import { Plus, Minus, Trash2, PenSquare } from 'lucide-react';
 import type { Item } from '../types/Item';
 import { useSwipeGestures } from '../hooks/useSwipeGestures';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ interface ItemRowProps {
   item: Item;
   onIncrease: (barcode: string) => void;
   onDecrease: (barcode: string) => void;
+  onEdit: (barcode:string) => void;
   onRemove: (barcode: string) => void;
 }
 
@@ -16,6 +17,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
   item,
   onIncrease,
   onDecrease,
+  onEdit,
   onRemove
 }) => {
   const {
@@ -78,8 +80,12 @@ const ItemRow: React.FC<ItemRowProps> = ({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 flex-1">
-          <img src={item.icon} alt="icon" className="w-8 h-8 inline-block" />
-          <div className="flex-1 min-w-0">
+          {item.icon.startsWith('http') ? (
+            <img src={item.icon} alt="icon" className="w-8 h-8 inline-block" />
+            ) : (
+              <span className="text-2xl">{item.icon}</span>
+            )}          
+            <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-800 truncate">{item.name}</h3>
               <p className="text-sm text-gray-500">#{item.barcode}</p>
             </div>
@@ -109,7 +115,12 @@ const ItemRow: React.FC<ItemRowProps> = ({
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            
+            <button
+              onClick={() => onEdit(item.barcode)}
+              className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 flex items-center justify-center transition-colors"
+            >
+              <PenSquare className="w-4 h-4" />
+            </button>           
             <button
               onClick={() => onRemove(item.barcode)}
               className="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition-colors"

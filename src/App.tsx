@@ -5,6 +5,8 @@ import SearchAndFilter from './components/SearchAndFilter';
 import ItemList from './components/ItemList';
 import AddItemDialog from './components/AddItemDialog';
 import RemoveItemDialog from './components/RemoveItemDialog';
+import Header from './components/Header';
+
 
 const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -13,6 +15,8 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const [showRemoveDialog, setShowRemoveDialog] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+
 
   const handleBarcodeSubmit = (barcode: string) => {
     const existingItem = items.find(item => item.barcode === barcode);
@@ -31,11 +35,13 @@ const App: React.FC = () => {
     }
   };
 
-  const handleAddNewItem = (name: string, icon: string) => {
+  const handleAddNewItem = (name: string, icon: string, category: string, brand: string) => {
     const newItem: Item = {
       barcode: pendingBarcode,
       name,
       icon,
+      category,
+      brand,
       amountInStock: 1
     };
 
@@ -47,6 +53,27 @@ const App: React.FC = () => {
   const handleCloseAddDialog = () => {
     setShowAddDialog(false);
     setPendingBarcode('');
+  };
+
+    // Open dialog for editing item
+    const openEditDialog = (barcode: string) => {
+      const itemToEdit = items.find(item => item.barcode === barcode);
+      if (itemToEdit) {
+        setEditingItem(itemToEdit);
+        setPendingBarcode(barcode);
+        setShowAddDialog(true);
+      }
+    };
+
+
+  const handleEditItem = (barcode: string, name: string, icon: string, category: string, brand: string) => {
+    setItems(prev => prev.map(item => 
+      item.barcode === barcode 
+        ? { ...item, name, icon, category, brand }
+        : item
+    ));
+    setShowAddDialog(false);
+    setEditingItem(null);
   };
 
   const increaseAmount = (barcode: string) => {
@@ -89,6 +116,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 max-w-md mx-auto">
+      <Header/>
       <BarcodeInput onBarcodeSubmit={handleBarcodeSubmit} />
       
       <SearchAndFilter
@@ -104,6 +132,7 @@ const App: React.FC = () => {
         totalItems={items.length}
         onIncrease={increaseAmount}
         onDecrease={decreaseAmount}
+        onEdit={openEditDialog}
         onRemove={handleRemoveItem}
       />
 
@@ -111,7 +140,9 @@ const App: React.FC = () => {
         isOpen={showAddDialog}
         onClose={handleCloseAddDialog}
         onAdd={handleAddNewItem}
+        onEdit={handleEditItem} // Pass the edit handler
         barcode={pendingBarcode}
+        editItem={editingItem} // Pass the item being edited
       />
 
       <RemoveItemDialog

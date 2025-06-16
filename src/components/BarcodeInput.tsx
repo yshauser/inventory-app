@@ -163,11 +163,7 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-        {t('header.appTitle')}
-      </h1>
-      
+    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">      
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
           {t('general.enterBarcode')}

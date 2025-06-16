@@ -10,8 +10,7 @@
     "manageMedicines": "Manage Medicines",
     "manageUsers": "Manage Users",
     "switchUser": "Switch User",
-    "about":"About",
-    "close": "Close"
+    "about":"About"
   },
     "about": {
       "description": "Manage Home Inventory",
@@ -37,18 +36,23 @@
       "enterBarcodePlaceholder": "Type barcode number...",
       "enterCategory": "Enter category",
       "enterBrand": "Enter brand",
-      "addItem": "Add item",
       "productFound": "Product found and loaded",
       "productNotFound": "No data was found for this product",
       "scanCameraTitle":"Scan barcode with camera",
       "scanBarcode": "Scan Barcode",
       "scanning": "Scanning...",
-      "scanningInstructions": "Position the barcode within the red rectangle to scan"
+      "scanningInstructions": "Position the barcode within the red rectangle to scan",
+      "editItemTitle": "Edit Item",
+      "enterItemName": "Enter item name",
+      "optionalIcon": "Optical icons"
     },
     "buttons":{
       "cancel": "Cancel",
       "remove": "Remove",
-      "add": "Add"
+      "add": "Add",
+      "addItem": "Add item",
+      "save": "Save",
+      "close": "Close"
     },
     "remove": {
       "remove": "Remove Item",

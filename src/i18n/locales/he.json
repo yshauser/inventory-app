@@ -7,8 +7,7 @@
     "settings": "הגדרות",
     "manageUsers": "ניהול משתמשים",
     "switchUser": "החלף משתמש",
-    "about":"אודות",
-    "close": "סגור"
+    "about":"אודות"
   },
     "about": {
       "description": "ניהול מלאי",
@@ -34,18 +33,23 @@
       "enterBarcodePlaceholder": "מספר ברקוד...",
       "enterCategory": "הכנס קטגוריה",
       "enterBrand": "הכנס מותג",
-      "addItem": "הוסף מוצר",
       "productFound": "נמצאו פרטי המוצר",
       "productNotFound": "לא נמצא מידע למוצר הזה",
       "scanCameraTitle":"סרוק ברקוד עם המצלמה",
       "scanBarcode": "סרוק ברקוד",
       "scanning": "סורק...",
-      "scanningInstructions": "לסריקה מקם את הברקוד בתוך המסגרת האדומה"
+      "scanningInstructions": "לסריקה מקם את הברקוד בתוך המסגרת האדומה",
+      "editItemTitle": "עריכת מוצר",
+      "enterItemName": "הכנס שם מוצר",
+      "optionalIcon": "אייקון חלופי לבחירה"
     },
     "buttons":{
       "cancel": "ביטול",
       "remove": "הסרה",
-      "add": "הוספה"
+      "add": "הוספה",
+      "addItem": "הוסף מוצר",
+      "save": "שמירה",
+      "close": "סגור"
     },
     "remove": {
       "remove": "הסר מוצר",

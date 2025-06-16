@@ -8,6 +8,7 @@ interface ItemListProps {
   totalItems: number;
   onIncrease: (barcode: string) => void;
   onDecrease: (barcode: string) => void;
+  onEdit: (barcode: string) => void;
   onRemove: (barcode: string) => void;
 }
 
@@ -16,6 +17,7 @@ const ItemList: React.FC<ItemListProps> = ({
   totalItems,
   onIncrease,
   onDecrease,
+  onEdit,
   onRemove
 }) => {
   if (items.length === 0) {
@@ -38,6 +40,7 @@ const ItemList: React.FC<ItemListProps> = ({
           item={item}
           onIncrease={onIncrease}
           onDecrease={onDecrease}
+          onEdit={onEdit}
           onRemove={onRemove}
         />
       ))}
