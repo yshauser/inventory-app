@@ -20,13 +20,71 @@ export class ItemOperationsService {
    */
   async fetchItems(): Promise<Item[]> {
     try {
-      return await getFamilyItems(this.familyID);
+      // Validate familyID before making the request
+      if (!this.familyID || typeof this.familyID !== 'string' || this.familyID.trim() === '') {
+        throw new Error(`Invalid familyID: ${this.familyID}. Cannot fetch items without a valid family ID.`);
+      }
+
+      console.log(`Fetching items for family: ${this.familyID}`);
+
+      const items = await getFamilyItems(this.familyID);
+      // Ensure we return an array even if no items found
+      if (!Array.isArray(items)) {
+        console.warn('getFamilyItems did not return an array, returning empty array');
+        return [];
+      }
+
+      console.log(`Successfully fetched ${items.length} items for family ${this.familyID}`);
+      return items;
     } catch (error) {
-      console.error('Error fetching items:', error);
-      throw new Error('Failed to load items. Please try again.');
+      console.error('Error fetching items for family:', this.familyID, error);
+      
+      // More specific error messages based on error type
+      if (error instanceof Error) {
+        if (error.message.includes('permission') || error.message.includes('unauthorized')) {
+          throw new Error('You do not have permission to access this family\'s items.');
+        }
+        if (error.message.includes('network') || error.message.includes('offline')) {
+          throw new Error('Network error. Please check your connection and try again.');
+        }
+        // Re-throw validation errors as-is
+        if (error.message.includes('Invalid familyID')) {
+          throw error;
+        }
+      }
+      
+      throw new Error('Failed to load family items. Please try again.');
     }
   }
-
+  /**
+   * Fetch items with retry mechanism for better reliability
+   */
+  async fetchItemsWithRetry(maxRetries: number = 3): Promise<Item[]> {
+    let lastError: Error;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.fetchItems();
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`Fetch attempt ${attempt} failed:`, error);
+        
+        // Don't retry on validation errors
+        if (error instanceof Error && error.message.includes('Invalid familyID')) {
+          throw error;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s...
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError!;
+  }
+  
   /**
    * Process a scanned barcode - either increment existing item or prepare for new item creation
    */

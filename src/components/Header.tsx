@@ -64,7 +64,7 @@ const Header: React.FC = () => {
                 {t('header.about')}
               </div>
               <div onClick={handleSwitchUser}>
-                Switch User
+                {t('header.switchUser')}
               </div>
             </div>
           )}

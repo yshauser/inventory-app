@@ -3,10 +3,11 @@
     "appTitle": "מלא מחדש",
     "home": "בית",
     "log": "תיעוד",
-    "kids": "ילדים",
+    "username": "שם משתמש",
     "settings": "הגדרות",
     "manageUsers": "ניהול משתמשים",
     "switchUser": "החלף משתמש",
+    "enterUsername": "הכנס שם משתמש",
     "about":"אודות"
   },
     "about": {

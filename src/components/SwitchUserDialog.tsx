@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AutoContext';
+import { useTranslation } from 'react-i18next';
 
 interface SwitchUserDialogProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const {t} = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,19 +45,19 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-80 max-w-sm mx-4">
-        <h2 className="text-xl font-bold mb-4">Switch User</h2>
+        <h2 className="text-xl font-bold mb-4">{t('header.switchUser')}</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+              {t('header.username')}
             </label>
             <input
               id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
+              placeholder={t('header.enterUsername')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
               required

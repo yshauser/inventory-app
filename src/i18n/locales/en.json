@@ -5,11 +5,12 @@
     "log": "Log",
     "scheduled": "Scheduled",
     "medicines": "Medicines",
-    "kids": "Kids",
+    "username": "Username",
     "settings": "Settings",
     "manageMedicines": "Manage Medicines",
     "manageUsers": "Manage Users",
     "switchUser": "Switch User",
+    "enterUsername": "Enter username",
     "about":"About"
   },
     "about": {

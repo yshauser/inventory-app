@@ -36,7 +36,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
     () => onIncrease(item.id)  // Swipe right to increase - using item.id
   );
   
-  console.log('item row', {item});
+  // console.log('item row', {item});
   
   const {t} = useTranslation();
 
