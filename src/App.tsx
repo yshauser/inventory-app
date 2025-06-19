@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Item, FilterType } from './types/Item';
 import BarcodeInput from './components/BarcodeInput';
 import SearchAndFilter from './components/SearchAndFilter';
@@ -7,13 +7,7 @@ import AddItemDialog from './components/AddItemDialog';
 import RemoveItemDialog from './components/RemoveItemDialog';
 import Header from './components/Header';
 import { AuthProvider, useAuth } from './contexts/AutoContext';
-import { 
-  addItemToFamily, 
-  updateItemInFamily, 
-  deleteItemFromFamily, 
-  getFamilyItems 
-} from './services/firestoreService';
-import { v4 as uuidv4 } from 'uuid';
+import { ItemOperationsService } from './services/itemOperations';
 
 const AppContent: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -27,19 +21,26 @@ const AppContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const { user, isLoading: authLoading } = useAuth();
+  const itemService = useRef<ItemOperationsService | null>(null);
+
+  // Initialize service when user is available
+  useEffect(() => {
+    if (user?.familyID) {
+      itemService.current = new ItemOperationsService(user.familyID);
+    }
+  }, [user?.familyID]);
 
   // Fetch items when user is available
   useEffect(() => {
     const fetchItems = async () => {
-      if (user) {
+      if (user && itemService.current) {
         try {
           setIsLoading(true);
           setError(null);
-          const familyItems = await getFamilyItems(user.familyID);
+          const familyItems = await itemService.current.fetchItems();
           setItems(familyItems);
         } catch (error) {
-          console.error('Error fetching items:', error);
-          setError('Failed to load items. Please try again.');
+          setError(error instanceof Error ? error.message : 'Failed to load items');
         } finally {
           setIsLoading(false);
         }
@@ -49,78 +50,46 @@ const AppContent: React.FC = () => {
   }, [user]);
 
   const handleBarcodeSubmit = async (barcode: string) => {
-    if (!user) return;
+    if (!user || !itemService.current) return;
 
     try {
       setError(null);
-      const existingItem = items.find(item => item.barcode === barcode);
+      const result = await itemService.current.processBarcodeSubmit(barcode, items);
       
-      if (existingItem) {
-        const updatedItem = { 
-          ...existingItem, 
-          amountInStock: Math.min(20, existingItem.amountInStock + 1) 
-        };
-        
-        // Update in Firestore
-        await updateItemInFamily(user.familyID, updatedItem);
-        
-        // Update local state
+      if (result.type === 'updated' && result.updatedItem) {
+        // Update local state with the updated item
         setItems(prev => prev.map(item => 
-          item.id === updatedItem.id ? updatedItem : item
+          item.id === result.updatedItem!.id ? result.updatedItem! : item
         ));
-      } else {
-        setPendingBarcode(barcode);
+      } else if (result.type === 'new_item_needed' && result.barcode) {
+        // Show dialog for new item
+        setPendingBarcode(result.barcode);
         setShowAddDialog(true);
       }
     } catch (error) {
-      console.error('Error processing barcode:', error);
-      setError('Failed to process barcode. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to process barcode');
     }
   };
 
   const handleAddNewItem = async (name: string, icon: string, category: string, brand: string) => {
-    if (!user) return;
+    if (!user || !itemService.current) return;
 
     try {
       setError(null);
-
-      // Debug logging
-      console.log('handleAddNewItem called with user:', {
-        user,
-        familyID: user.familyID,
-        familyIDType: typeof user.familyID
-      });
-
-      const newItem: Item = {
-        id: uuidv4(),
-        barcode: pendingBarcode,
-        name,
-        icon,
-        category,
-        brand,
-        amountInStock: 1
-      };
-
-            // Validate familyID
-            if (!user.familyID || typeof user.familyID !== 'string') {
-              throw new Error(`Invalid familyID: ${user.familyID} (type: ${typeof user.familyID})`);
-            }
-      
-            console.log('About to call addItemToFamily with:', {
-              familyID: user.familyID,
-              newItem
-            });
-
-      // Add to Firestore
-      await addItemToFamily(user.familyID, newItem);
+      const newItem = await itemService.current.addNewItem(
+        pendingBarcode, 
+        name, 
+        icon, 
+        category, 
+        brand
+      );
       
       // Update local state
       setItems(prev => [...prev, newItem]);
       setShowAddDialog(false);
       setPendingBarcode('');
     } catch (error) {
-      console.error('Error adding item:', error);
-      setError('Failed to add item. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to add item');
     }
   };
 
@@ -141,21 +110,18 @@ const AppContent: React.FC = () => {
   };
 
   const handleEditItem = async (barcode: string, name: string, icon: string, category: string, brand: string) => {
-    if (!user || !editingItem) return;
+    if (!user || !editingItem || !itemService.current) return;
 
     try {
       setError(null);
-      const updatedItem: Item = { 
-        ...editingItem,
-        barcode, 
-        name, 
-        icon, 
-        category, 
-        brand 
-      };
-      
-      // Update in Firestore
-      await updateItemInFamily(user.familyID, updatedItem);
+      const updatedItem = await itemService.current.updateItem(
+        editingItem,
+        barcode,
+        name,
+        icon,
+        category,
+        brand
+      );
       
       // Update local state
       setItems(prev => prev.map(item => 
@@ -164,25 +130,19 @@ const AppContent: React.FC = () => {
       setShowAddDialog(false);
       setEditingItem(null);
     } catch (error) {
-      console.error('Error editing item:', error);
-      setError('Failed to update item. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to update item');
     }
   };
 
   const increaseAmount = async (itemId: string) => {
-    if (!user) return;
+    if (!user || !itemService.current) return;
     
     try {
       setError(null);
       const itemToUpdate = items.find(item => item.id === itemId);
       if (itemToUpdate) {
-        const updatedItem = { 
-          ...itemToUpdate, 
-          amountInStock: Math.min(20, itemToUpdate.amountInStock + 1) 
-        };
-        
-        // Update in Firestore
-        await updateItemInFamily(user.familyID, updatedItem);
+        console.log ('app increase', {itemToUpdate})
+        const updatedItem = await itemService.current.increaseItemStock(itemToUpdate);
         
         // Update local state
         setItems(prev => prev.map(item => 
@@ -190,25 +150,18 @@ const AppContent: React.FC = () => {
         ));
       }
     } catch (error) {
-      console.error('Error increasing amount:', error);
-      setError('Failed to update item quantity. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to update item quantity');
     }
   };
 
   const decreaseAmount = async (itemId: string) => {
-    if (!user) return;
+    if (!user || !itemService.current) return;
     
     try {
       setError(null);
       const itemToUpdate = items.find(item => item.id === itemId);
       if (itemToUpdate) {
-        const updatedItem = { 
-          ...itemToUpdate, 
-          amountInStock: Math.max(0, itemToUpdate.amountInStock - 1) 
-        };
-        
-        // Update in Firestore
-        await updateItemInFamily(user.familyID, updatedItem);
+        const updatedItem = await itemService.current.decreaseItemStock(itemToUpdate);
         
         // Update local state
         setItems(prev => prev.map(item => 
@@ -216,8 +169,7 @@ const AppContent: React.FC = () => {
         ));
       }
     } catch (error) {
-      console.error('Error decreasing amount:', error);
-      setError('Failed to update item quantity. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to update item quantity');
     }
   };
 
@@ -226,20 +178,17 @@ const AppContent: React.FC = () => {
   };
 
   const confirmRemoveItem = async () => {
-    if (!user || !showRemoveDialog) return;
+    if (!user || !showRemoveDialog || !itemService.current) return;
     
     try {
       setError(null);
-      
-      // Delete from Firestore
-      await deleteItemFromFamily(user.familyID, showRemoveDialog);
+      await itemService.current.removeItem(showRemoveDialog);
       
       // Update local state
       setItems(prev => prev.filter(item => item.id !== showRemoveDialog));
       setShowRemoveDialog(null);
     } catch (error) {
-      console.error('Error removing item:', error);
-      setError('Failed to remove item. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to remove item');
     }
   };
 

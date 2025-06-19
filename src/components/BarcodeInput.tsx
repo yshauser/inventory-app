@@ -168,14 +168,14 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
         <label className="block text-sm font-medium text-gray-700">
           {t('general.enterBarcode')}
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             type="text"
             value={barcodeInput}
             onChange={(e) => setBarcodeInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder=          {t('general.enterBarcodePlaceholder')}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder= {t('general.enterBarcodePlaceholder')}
+            className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={handleSubmit}

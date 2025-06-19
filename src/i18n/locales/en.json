@@ -65,7 +65,9 @@
       "outOfStock": "Out of Stock"
     },
     "itemRow": {
-      "releaseSwipeText": "Release to confirm action",
-      "swipeText" : "Swipe right to increase • Swipe left to decrease"
+      "releaseSwipeText": "Release to confirm action • Swipe back to cancel",
+      "swipeText" : "Swipe right to increase • Swipe left to decrease",
+      "noItemsYet" : "No items yet. Add your first item!",
+      "noitemsMatch" : "No items match your search"
     }
   }

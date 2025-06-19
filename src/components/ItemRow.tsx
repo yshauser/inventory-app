@@ -4,13 +4,12 @@ import type { Item } from '../types/Item';
 import { useSwipeGestures } from '../hooks/useSwipeGestures';
 import { useTranslation } from 'react-i18next';
 
-
 interface ItemRowProps {
   item: Item;
-  onIncrease: (barcode: string) => void;
-  onDecrease: (barcode: string) => void;
-  onEdit: (barcode:string) => void;
-  onRemove: (barcode: string) => void;
+  onIncrease: (id: string) => void;
+  onDecrease: (id: string) => void;
+  onEdit: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 const ItemRow: React.FC<ItemRowProps> = ({
@@ -33,10 +32,11 @@ const ItemRow: React.FC<ItemRowProps> = ({
     showBackground,
     isDragging
   } = useSwipeGestures(
-    () => onDecrease(item.barcode), // Swipe left to decrease
-    () => onIncrease(item.barcode)  // Swipe right to increase
+    () => onDecrease(item.id), // Swipe left to decrease - using item.id
+    () => onIncrease(item.id)  // Swipe right to increase - using item.id
   );
-  console.log ('item row', {item})
+  
+  console.log('item row', {item});
   
   const {t} = useTranslation();
 
@@ -80,8 +80,8 @@ const ItemRow: React.FC<ItemRowProps> = ({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 flex-1">
-          {item.icon.startsWith('http') ? (
-            <img src={item.icon} alt="icon" className="w-8 h-8 inline-block" />
+            {item.icon.startsWith('http') ? (
+              <img src={item.icon} alt="icon" className="w-8 h-8 inline-block" />
             ) : (
               <span className="text-2xl">{item.icon}</span>
             )}          
@@ -94,7 +94,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
               <button
-                onClick={() => onDecrease(item.barcode)}
+                onClick={() => onDecrease(item.id)} // Changed from item.barcode to item.id
                 disabled={item.amountInStock === 0}
                 className="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
               >
@@ -108,7 +108,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
               </span>
               
               <button
-                onClick={() => onIncrease(item.barcode)}
+                onClick={() => onIncrease(item.id)} // Changed from item.barcode to item.id
                 disabled={item.amountInStock === 20}
                 className="w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
               >
@@ -116,13 +116,13 @@ const ItemRow: React.FC<ItemRowProps> = ({
               </button>
             </div>
             <button
-              onClick={() => onEdit(item.barcode)}
+              onClick={() => onEdit(item.id)} // Changed from item.barcode to item.id
               className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 flex items-center justify-center transition-colors"
             >
               <PenSquare className="w-4 h-4" />
             </button>           
             <button
-              onClick={() => onRemove(item.barcode)}
+              onClick={() => onRemove(item.id)} // Changed from item.barcode to item.id
               className="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition-colors"
             >
               <Trash2 className="w-4 h-4" />
