@@ -1,4 +1,5 @@
 export interface Item {
+    id: string; // Added for Firestore document ID
     barcode: string;
     name: string;
     icon: string;

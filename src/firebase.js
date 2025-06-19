@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getMessaging } from 'firebase/messaging';
+// import { initializeAdminFamilyAndUser } from './services/firestoreService';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,6 +14,7 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
+  console.log ('firebase config')
 
 // Replace these with your Firebase project configuration
 // const firebaseConfig = {
@@ -29,5 +31,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const messaging = getMessaging(app);
+
 
 export { app, db, auth, messaging };

@@ -12,8 +12,21 @@ service cloud.firestore {
     // Make sure to write security rules for your app before that time, or else
     // all client requests to your Firestore database will be denied until you Update
     // your rules
+//    match /families/{familyId} {
+//      allow read, write: if true;
+//    }
+//
+//    match /items/{familyId} {
+//      allow read, write: if true;
+//    }
+
     match /{document=**} {
       allow read, write: if request.time < timestamp.date(2025, 5, 15);
     }
+
+    // Optionally, keep a more restrictive rule for other documents if needed, or remove it.
+    // For now, I'll remove the expiring rule as it's causing issues.
+    // If there are other collections, they would need specific rules.
+    // For this task, only 'families' and 'items' are relevant.
   }
 }

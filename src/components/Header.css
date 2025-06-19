@@ -2,14 +2,43 @@
 .header {
   display: flex;
   align-items: center;
-  /* justify-content: space-between; */
-  padding: 12px 16px;
+  justify-content: space-between;
+  /* padding: 12px 16px; */
+  padding: 0.5rem 1rem;
   background: linear-gradient(to right, #4a6fa5, #3a5683);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  position: relative;
+  direction: inherit;
+}
+
+.header-left,
+.header-right {
+  flex: 1;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.header-title {
+  margin:0;
+}
+
+.logged-in-user {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  position: relative;
+  align-items: center;
+  justify-content: flex-end;
+  display: flex;
+}
+html[dir="rtl"] .header {
+  flex-direction: row-reverse;
 }
 
 /* RTL support for gradient */
