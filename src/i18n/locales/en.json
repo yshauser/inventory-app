@@ -22,6 +22,26 @@
       "appNameLabel": "App Name",
       "emailLabel": "Email"
     },
+    "login" :{
+      "welcome":"Welcome!",
+      "welcomeTo" : "Welcome to ",
+      "signInText":"Sign in to continue to your family dashboard",
+      "googleSignIn": "Sign in with your Google account to continue",
+      "signingAgreement":"By signing in, you agree to our terms of service and privacy policy",
+      "signing":"Signing in...",
+      "continueWithGoogle" : "Continue with Google",
+      "createFamily":"Create New Family",
+      "creating": "Creating...",
+      "joinFamily":"Join Existing Family",
+      "noAccount":"We couldn't find an account associated with {{email}}.\nWould you like to create a new family or join an existing one?",
+      "signInFail": "Sign in failed",
+      "familyName": "Family Name",
+      "familyNamePlaceholder": "Enter family name",
+      "yourUsername": "Your Username",
+      "familyID": "Family ID",
+      "enterFamilyID": "Enter family ID",
+      "joining": "Joining..."
+    },
     "general": {
       "guest": "Guest",
       "barcode": "Barcode",
@@ -53,7 +73,11 @@
       "add": "Add",
       "addItem": "Add item",
       "save": "Save",
-      "close": "Close"
+      "close": "Close",
+      "backIcon": "←",
+      "back": "Back",
+      "create": "Create",
+      "join" : "Join Family"
     },
     "remove": {
       "remove": "Remove Item",

@@ -5,7 +5,7 @@ import './Header.css';
 import packageJson from '../../package.json'; // Adjust path as needed
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AutoContext';
-import SwitchUserDialog from './SwitchUserDialog';
+import SwitchUserDialog from './dialogs/SwitchUserDialog';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);

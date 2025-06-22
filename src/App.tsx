@@ -3,11 +3,13 @@ import type { Item, FilterType } from './types/Item';
 import BarcodeInput from './components/BarcodeInput';
 import SearchAndFilter from './components/SearchAndFilter';
 import ItemList from './components/ItemList';
-import AddItemDialog from './components/AddItemDialog';
-import RemoveItemDialog from './components/RemoveItemDialog';
+import AddItemDialog from './components/dialogs/AddItemDialog';
+import RemoveItemDialog from './components/dialogs/RemoveItemDialog';
 import Header from './components/Header';
 import { AuthProvider, useAuth } from './contexts/AutoContext';
 import { ItemOperationsService } from './services/itemOperations';
+import LoginScreen from './components/dialogs/LoginScreen';
+
 
 const AppContent: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -215,13 +217,14 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No user logged in</p>
-        </div>
-      </div>
-    );
+    // return (
+    //   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    //     <div className="text-center">
+    //       <p className="text-gray-600">No user logged in</p>
+    //     </div>
+    //   </div>
+    // );
+    return <LoginScreen/>;
   }
 
   return (
@@ -287,3 +290,9 @@ const App: React.FC = () => {
 };
 
 export default App;
+const LoadingSpinner: React.FC = () => (
+  <div className="flex flex-col items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p className="mt-4 text-gray-600">Loading...</p>
+  </div>
+);

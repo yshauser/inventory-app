@@ -19,6 +19,25 @@
       "appNameLabel": "שם האפליקציה",
       "emailLabel": "אימייל"
     },
+    "login" :{
+      "welcome":"ברוכים הבאים",
+      "welcomeTo" : "ברוכים הבאים ל",
+      "signInText":"התחברו כדי להגיע למאגר המשפחתי",
+      "googleSignIn": "התחברו עם חשבון גוגל",
+      "signingAgreement":"ההתחברות היא הסכמה לתנאי השירות והפרטיות של גוגל",
+      "signing":"מתחבר...",
+      "continueWithGoogle" : "המשיכו עם גוגל",
+      "createFamily":"יצירת משפחה חדשה",
+      "joinFamily":"הצטרפות למשפחה",
+      "noAccount":"לא נמצא חשבון משויך לכתובת {{email}}.\nליצור משפחה חדשה או להצטרף למשפחה קיימת?",
+      "signInFail": "ההתחברות נכשלה",
+      "familyName": "שם משפחה",
+      "familyNamePlaceholder": "הכניסו שם משפחה...",
+      "yourUsername": "שם המשתמש שלך",
+      "familyID": "מספר מזהה של המשפחה",
+      "enterFamilyID": "הכניסו מספר מזהה של המשפחה",
+      "joining": "מצטרף..."
+    },
     "general": {
       "guest": "אורח",
       "barcode": "ברקוד",
@@ -50,7 +69,11 @@
       "add": "הוספה",
       "addItem": "הוסף מוצר",
       "save": "שמירה",
-      "close": "סגור"
+      "close": "סגור",
+      "backIcon": "→",
+      "back":"חזרה",
+      "create": "יצירה",
+      "join" : "הצטרפות"
     },
     "remove": {
       "remove": "הסר מוצר",

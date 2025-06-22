@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { fetchProductInfo } from '../api/productLookup';
-import type { ProductInfo } from '../api/productLookup';
-import type {Item} from '../types/Item';
+import { fetchProductInfo } from '../../api/productLookup';
+import type { ProductInfo } from '../../api/productLookup';
+import type {Item} from '../../types/Item';
 import { useTranslation } from 'react-i18next';
-import '../i18n/i18n';
+import '../../i18n/i18n';
 
 interface AddItemDialogProps {
   isOpen: boolean;

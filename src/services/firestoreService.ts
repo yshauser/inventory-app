@@ -19,6 +19,8 @@ const FAMILIES_COLLECTION = 'families';
 const USERS_COLLECTION = 'users';
 const ITEMS_COLLECTION = 'items';
 
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
 // Generic function to get all documents from a collection
 export const getCollection = async <T>(collectionName: string): Promise<T[]> => {
   try {
@@ -32,6 +34,29 @@ export const getCollection = async <T>(collectionName: string): Promise<T[]> => 
     return data;
   } catch (error) {
     console.error(`Error getting ${collectionName} collection:`, error);
+    throw error;
+  }
+};
+
+// Get user by email from users collection
+export const getUserByEmail = async (email: string): Promise<User | null> => {
+  console.log('getUserByEmail', email);
+  try {
+    const q = query(collection(db, USERS_COLLECTION), where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const userData = querySnapshot.docs[0].data();
+      return {
+        username: userData.username,
+        email: userData.email,
+        familyID: userData.familyID,
+        userID: userData.userID
+      } as User;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user by email:', error);
     throw error;
   }
 };
@@ -59,6 +84,73 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
   }
 };
 
+// Create a new family
+export const createFamily = async (familyName: string): Promise<Family> => {
+  try {
+    const familyID = generateId();
+    const family: Family = {
+      familyname: familyName,
+      familyID: familyID,
+      users: []
+    };
+
+    await setDoc(doc(db, FAMILIES_COLLECTION, familyID), {
+      familyname: familyName,
+      familyID: familyID
+    });
+
+    console.log(`Family created with ID: ${familyID}`);
+    return family;
+  } catch (error) {
+    console.error('Error creating family:', error);
+    throw error;
+  }
+};
+
+// Create a new user
+export const createUser = async (username: string, email: string, familyID: string): Promise<User> => {
+  try {
+    const userID = generateId();
+    const user: User = {
+      username,
+      email,
+      familyID,
+      userID
+    };
+
+    await setDoc(doc(db, USERS_COLLECTION, userID), user);
+
+    console.log(`User created with ID: ${userID}`);
+    return user;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+};
+
+// Get family by ID
+export const getFamilyById = async (familyID: string): Promise<Family | null> => {
+  try {
+    const docRef = doc(db, FAMILIES_COLLECTION, familyID);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const familyData = docSnap.data();
+      const users = await getUsersByFamilyId(familyID);
+      
+      return {
+        familyname: familyData.familyname,
+        familyID: familyData.familyID,
+        users: users
+      } as Family;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting family by ID:', error);
+    throw error;
+  }
+};
+
 // Get all users in a family
 export const getUsersByFamilyId = async (familyId: string): Promise<User[]> => {
   try {
@@ -82,14 +174,13 @@ export const getUsersByFamilyId = async (familyId: string): Promise<User[]> => {
     throw error;
   }
 };
-
 export const getFamilyNameByFamilyId = async (familyId: string): Promise<string | undefined> => {
   try {
-    const q = query(collection(db, FAMILIES_COLLECTION), where('familyID', '==', familyId));
-    const querySnapshot = await getDocs(q);
+    const docRef = doc(db, FAMILIES_COLLECTION, familyId);
+    const docSnap = await getDoc(docRef);
 
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].data().familyname as string;
+    if (docSnap.exists()) {
+      return docSnap.data().familyname as string;
     } else {
       console.log(`No family found with id: ${familyId}`);
       return undefined;
@@ -100,7 +191,25 @@ export const getFamilyNameByFamilyId = async (familyId: string): Promise<string 
   }
 };
 
+// export const getFamilyNameByFamilyId = async (familyId: string): Promise<string | undefined> => {
+//   try {
+//     const q = query(collection(db, FAMILIES_COLLECTION), where('familyID', '==', familyId));
+//     const querySnapshot = await getDocs(q);
+
+//     if (!querySnapshot.empty) {
+//       return querySnapshot.docs[0].data().familyname as string;
+//     } else {
+//       console.log(`No family found with id: ${familyId}`);
+//       return undefined;
+//     }
+//   } catch (error) {
+//     console.error('Error getting family name by familyId:', error);
+//     throw error;
+//   }
+// };
+
 // Initialize admin user (simplified since you already have the data in Firestore)
+
 export const initializeAdminUser = async (): Promise<User> => {
   console.log ('in initializeAdminUser')
   try {
