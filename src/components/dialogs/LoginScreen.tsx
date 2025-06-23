@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AutoContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import SetupDialog from './SetupDialog';
 import { useTranslation } from 'react-i18next';
 
@@ -9,16 +9,26 @@ const LoginScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [setupEmail, setSetupEmail] = useState('');
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle,pendingRedirectAuth } = useAuth();
 
   const {t} = useTranslation();
 
+  // Handle redirect auth result
+  useEffect(() => {
+    if (pendingRedirectAuth?.needsSetup && pendingRedirectAuth?.email) {
+      setSetupEmail(pendingRedirectAuth.email);
+      setShowSetup(true);
+    }
+  }, [pendingRedirectAuth]);
+  
   const handleGoogleLogin = async () => {
     setError('');
     setIsLoading(true);
 
     try {
       const result = await loginWithGoogle();
+         // For mobile redirect, the result might not be meaningful since the page will redirect
+      // The actual handling is done in the useEffect above and in the AuthContext
       if (result.success) {
         // User logged in successfully - AuthContext will handle the redirect
         console.log('Login successful');
@@ -26,6 +36,10 @@ const LoginScreen: React.FC = () => {
         // User needs to set up account
         setSetupEmail(result.email);
         setShowSetup(true);
+      } else if (!result.success && !result.needsSetup) {
+        // This might be a redirect case, don't show error immediately
+        // The redirect will handle the flow
+        console.log('Redirect flow initiated or other non-error case');
       } else {
         setError('Failed to sign in with Google. Please try again.');
       }
@@ -33,7 +47,9 @@ const LoginScreen: React.FC = () => {
       console.error('Login error:', error);
       setError('An error occurred during sign in. Please try again.');
     } finally {
-      setIsLoading(false);
+      // Don't set loading to false immediately for mobile redirect
+      // as the page will redirect anyway
+      setTimeout(() => setIsLoading(false), 1000);
     }
   };
 

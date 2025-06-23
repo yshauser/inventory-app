@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AutoContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 interface SetupDialogProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
+  onSuccess?: () => void;
 }
 
 const SetupDialog: React.FC<SetupDialogProps> = ({ isOpen, onClose, email }) => {

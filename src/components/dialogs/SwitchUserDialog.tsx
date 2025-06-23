@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AutoContext';
+import React, { useState , useEffect} from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SetupDialog from './SetupDialog';
 
@@ -13,8 +13,16 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
   const [isLoading, setIsLoading] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [setupEmail, setSetupEmail] = useState('');
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle , pendingRedirectAuth} = useAuth();
   const {t} = useTranslation();
+
+  // Handle redirect auth result
+  useEffect(() => {
+    if (isOpen && pendingRedirectAuth?.needsSetup && pendingRedirectAuth?.email) {
+      setSetupEmail(pendingRedirectAuth.email);
+      setShowSetup(true);
+    }
+  }, [pendingRedirectAuth, isOpen]);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -35,7 +43,8 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
     } catch (error) {
       setError('An error occurred during sign in. Please try again.');
     } finally {
-      setIsLoading(false);
+      // Don't set loading to false immediately for mobile redirect
+      setTimeout(() => setIsLoading(false), 1000);
     }
   };
 
@@ -70,7 +79,14 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
   const handleSetupClose = () => {
     setShowSetup(false);
     setSetupEmail('');
-    // Don't close the main dialog, let user try again or close manually
+    handleClose();    // For switch user dialog, if setup is cancelled, close the main dialog too
+  };
+
+  const handleSetupSuccess = () => {
+    setShowSetup(false);
+    setSetupEmail('');
+    // Close the main dialog when setup is successful
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -80,47 +96,7 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-80 max-w-sm mx-4">
         <h2 className="text-xl font-bold mb-4">{t('header.switchUser')}</h2>
-        {/* <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('header.username')}
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder={t('header.enterUsername')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || !username.trim()}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Switching...' : 'Switch User'}
-            </button>
-          </div>
-        </form> */}
+ 
           <div className="space-y-4">
             <p className="text-gray-600 text-sm">
               {t('login.googleSignIn')}
@@ -151,7 +127,7 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
               disabled={isLoading}
               className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
             >
-              Cancel
+               {t('buttons.cancel')}
             </button>
           </div>
       </div>
@@ -160,6 +136,7 @@ const SwitchUserDialog: React.FC<SwitchUserDialogProps> = ({ isOpen, onClose }) 
           isOpen={showSetup}
           onClose={handleSetupClose}
           email={setupEmail}
+          onSuccess={handleSetupSuccess}
         />
       </>
   );

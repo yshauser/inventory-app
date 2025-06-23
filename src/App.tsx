@@ -6,7 +6,7 @@ import ItemList from './components/ItemList';
 import AddItemDialog from './components/dialogs/AddItemDialog';
 import RemoveItemDialog from './components/dialogs/RemoveItemDialog';
 import Header from './components/Header';
-import { AuthProvider, useAuth } from './contexts/AutoContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ItemOperationsService } from './services/itemOperations';
 import LoginScreen from './components/dialogs/LoginScreen';
 
@@ -290,9 +290,9 @@ const App: React.FC = () => {
 };
 
 export default App;
-const LoadingSpinner: React.FC = () => (
-  <div className="flex flex-col items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    <p className="mt-4 text-gray-600">Loading...</p>
-  </div>
-);
+// const LoadingSpinner: React.FC = () => (
+//   <div className="flex flex-col items-center justify-center">
+//     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+//     <p className="mt-4 text-gray-600">Loading...</p>
+//   </div>
+// );

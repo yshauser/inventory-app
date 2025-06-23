@@ -11,6 +11,8 @@ import {
 import { ItemOperationsService } from '../services/itemOperations';
 import { 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   signOut as firebaseSignOut,
   onAuthStateChanged, 
@@ -25,6 +27,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   login: (username: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<{ success: boolean; needsSetup?: boolean; email?: string }>;
+  pendingRedirectAuth: { needsSetup?: boolean; email?: string } | null;
   createNewFamily: (email: string, familyName: string, username: string) => Promise<boolean>;
   joinExistingFamily: (email: string, familyID: string, username: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -46,6 +49,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper function to detect if device is mobile
+const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         ((navigator.maxTouchPoints !== undefined) && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+  // return /Mobi|Android|iPhone/i.test(navigator.userAgent);
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [familyID, setFamilyID] = useState<string | null>(null);
@@ -53,6 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [pendingRedirectAuth, setPendingRedirectAuth] = useState<{ needsSetup?: boolean; email?: string } | null>(null);
 
   // Helper function to update family-related state
   const updateFamilyContext = (newUser: User | null) => {
@@ -86,6 +97,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('lastLoggedInUser');
   };
 
+  // Store redirect auth state
+  const storeRedirectAuthState = (state: { needsSetup?: boolean; email?: string }) => {
+    localStorage.setItem('pendingRedirectAuth', JSON.stringify(state));
+  };
+
+  const getRedirectAuthState = (): { needsSetup?: boolean; email?: string } | null => {
+    const stored = localStorage.getItem('pendingRedirectAuth');
+    return stored ? JSON.parse(stored) : null;
+  };
+
+  const clearRedirectAuthState = () => {
+    localStorage.removeItem('pendingRedirectAuth');
+  };
+
+   // Handle Google authentication result
+   const handleGoogleAuthResult = async (firebaseUser: FirebaseUser): Promise<{ success: boolean; needsSetup?: boolean; email?: string }> => {
+    const email = firebaseUser.email;
+    
+    if (!email) {
+      throw new Error('No email found in Google account');
+    }
+
+    // Check if user exists in our database
+    const existingUser = await getUserByEmail(email);
+    
+    if (existingUser) {
+      // User exists, log them in
+      setUser(existingUser);
+      updateFamilyContext(existingUser);
+      storeLastUser(email);
+      return { success: true };
+    } else {
+      // User doesn't exist, needs setup
+      return { success: false, needsSetup: true, email };
+    }
+  };
+
   // Initialize auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -93,12 +141,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (firebaseUser?.email) {
         try {
-          // Try to find user in our database
+          // Check if this is a redirect result
+          const redirectResult = await getRedirectResult(auth);
+          if (redirectResult) {
+            // This is a redirect result, handle it
+            console.log('Handling redirect result');
+            const authResult = await handleGoogleAuthResult(firebaseUser);
+            
+            if (!authResult.success && authResult.needsSetup) {
+              // Store the setup requirement for the UI to handle
+              setPendingRedirectAuth({ needsSetup: true, email: authResult.email });
+              storeRedirectAuthState({ needsSetup: true, email: authResult.email });
+            } else {
+              // Clear any pending redirect state
+              setPendingRedirectAuth(null);
+              clearRedirectAuthState();
+            }
+          } else {
+          // Regular auth state change, try to find user in our database
           const existingUser = await getUserByEmail(firebaseUser.email);
           if (existingUser) {
             setUser(existingUser);
             updateFamilyContext(existingUser);
             storeLastUser(firebaseUser.email);
+            }else{
+              // Check if there's a pending redirect auth state
+              const pendingState = getRedirectAuthState();
+              if (pendingState){
+                setPendingRedirectAuth(pendingState);
+              }
+            }
           }
         } catch (error) {
           console.error('Error loading user from database:', error);
@@ -118,8 +190,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             clearLastUser();
           }
         }
-      }
-      
+        // Clear any pending redirect state if user is not authenticated
+        setPendingRedirectAuth(null);
+        clearRedirectAuthState();
+      }      
       setIsLoading(false);
     });
 
@@ -154,43 +228,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Google authentication
+  // Google authentication with mobile/desktop detection
   const loginWithGoogle = async (): Promise<{ success: boolean; needsSetup?: boolean; email?: string }> => {
     try {
-      console.log ('google login')
+      console.log ('starting google login')
       setIsAuthenticating(true);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
         prompt: 'select_account'
       });
-      console.log ('google login data', {provider})
+      const isMobile = isMobileDevice();
+      console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
 
-      const result = await signInWithPopup(auth, provider);
-      console.log('User info:', {result});
-      const email = result.user.email;
-      
-      if (!email) {
-        throw new Error('No email found in Google account');
-      }
-
-      // Check if user exists in our database
-      const existingUser = await getUserByEmail(email);
-      
-      if (existingUser) {
-        // User exists, log them in
-        setUser(existingUser);
-        updateFamilyContext(existingUser);
-        storeLastUser(email);
-        return { success: true };
+      if (isMobile) {
+        // Use redirect for mobile devices
+        console.log('Using signInWithRedirect for mobile');
+        await signInWithRedirect(auth, provider);
+        
+        // For redirect, we return a pending state since the result will come later
+        // The actual result will be handled in the onAuthStateChanged listener
+        return { success: false, needsSetup: false }; // This won't be used since redirect will reload the page
       } else {
-        // User doesn't exist, needs setup
-        return { success: false, needsSetup: true, email };
-      }
+        // Use popup for desktop devices
+        console.log('Using signInWithPopup for desktop');
+        const result = await signInWithPopup(auth, provider);
+        console.log('Popup result:', result);
+        
+        return await handleGoogleAuthResult(result.user);
+      }      
     } catch (error) {
       console.error('Error during Google login:', error);
-      return { success: false };
-    } finally {
       setIsAuthenticating(false);
+      return {success:false};
     }
   };
 
@@ -209,7 +278,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(newUser);
       updateFamilyContext(newUser);
       storeLastUser(email);
-      
+      // Clear any pending redirect state
+      setPendingRedirectAuth(null);
+      clearRedirectAuthState();
       return true;
     } catch (error) {
       console.error('Error creating new family:', error);
@@ -237,7 +308,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(newUser);
       updateFamilyContext(newUser);
       storeLastUser(email);
-      
+      // Clear any pending redirect state
+      setPendingRedirectAuth(null);
+      clearRedirectAuthState();
+
       return { success: true };
     } catch (error) {
       console.error('Error joining family:', error);
@@ -255,11 +329,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setFirebaseUser(null);
       updateFamilyContext(null);
       clearLastUser();
+      setPendingRedirectAuth(null);
+      clearRedirectAuthState();
       console.log('User logged out successfully');
     } catch (error) {
       console.error('Error during logout:', error);
     }
   };
+
+    // Effect to handle pending redirect auth state
+    useEffect(() => {
+      if (pendingRedirectAuth?.needsSetup && pendingRedirectAuth?.email && !user) {
+        // This will trigger the setup dialog in components that check for this state
+        console.log('Pending redirect auth setup needed for:', pendingRedirectAuth.email);
+      }
+    }, [pendingRedirectAuth, user]);
 
   const value = {
     user,
@@ -272,7 +356,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     joinExistingFamily,
     logout,
     isLoading,
-    isAuthenticating
+    isAuthenticating,
+    pendingRedirectAuth // Expose the pending redirect auth state for components to use
   };
 
   return (

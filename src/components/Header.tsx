@@ -4,7 +4,7 @@ import React, {useState, useRef, useEffect} from 'react';
 import './Header.css';
 import packageJson from '../../package.json'; // Adjust path as needed
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AutoContext';
+import { useAuth } from '../contexts/AuthContext';
 import SwitchUserDialog from './dialogs/SwitchUserDialog';
 
 const Header: React.FC = () => {
