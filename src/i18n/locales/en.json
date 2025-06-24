@@ -40,7 +40,8 @@
       "yourUsername": "Your Username",
       "familyID": "Family ID",
       "enterFamilyID": "Enter family ID",
-      "joining": "Joining..."
+      "joining": "Joining...",
+      "loading": "Loading..."
     },
     "general": {
       "guest": "Guest",

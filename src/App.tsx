@@ -9,6 +9,7 @@ import Header from './components/Header';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ItemOperationsService } from './services/itemOperations';
 import LoginScreen from './components/dialogs/LoginScreen';
+import { useTranslation } from 'react-i18next';
 
 
 const AppContent: React.FC = () => {
@@ -25,6 +26,8 @@ const AppContent: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
   const itemService = useRef<ItemOperationsService | null>(null);
 
+  const {t} = useTranslation();
+  
   // Initialize service when user is available
   useEffect(() => {
     if (user?.familyID) {
@@ -34,6 +37,7 @@ const AppContent: React.FC = () => {
 
   // Fetch items when user is available
   useEffect(() => {
+    console.log('app - fetching items...')
     const fetchItems = async () => {
       if (user && itemService.current) {
         try {
@@ -206,16 +210,17 @@ const AppContent: React.FC = () => {
   });
 
   if (authLoading || isLoading) {
+    console.log('app loading',{authLoading,isLoading})
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('login.loading')}</p>
         </div>
       </div>
     );
   }
-
+console.log ('app user', {user})
   if (!user) {
     // return (
     //   <div className="min-h-screen bg-gray-50 flex items-center justify-center">

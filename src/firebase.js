@@ -14,23 +14,31 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
-  console.log ('firebase config')
-
-// Replace these with your Firebase project configuration
-// const firebaseConfig = {
-//     apiKey: "YOUR_API_KEY",
-//     authDomain: "YOUR_PROJECT.firebaseapp.com",
-//     projectId: "YOUR_PROJECT",
-//     storageBucket: "YOUR_PROJECT.appspot.com",
-//     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-//     appId: "YOUR_APP_ID"
-// };
+  console.log ('firebase config loaded')
 
 // Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const messaging = getMessaging(app);
+
+// For development, you might want to use a different approach
+// Check if we're in development mode
+const isDevelopment = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('192.168');
+
+console.log('Environment:', isDevelopment ? 'Development' : 'Production');
+console.log('Current hostname:', window.location.hostname);
+
+let messaging = null;
+try {
+  // Messaging might not work in localhost development
+  if (!isDevelopment || import.meta.env.VITE_ENABLE_MESSAGING === 'true') {
+    messaging = getMessaging(app);
+  }
+} catch (error) {
+  console.warn('Firebase messaging not available:', error.message);
+}
 
 
 export { app, db, auth, messaging };

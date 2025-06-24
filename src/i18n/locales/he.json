@@ -36,7 +36,8 @@
       "yourUsername": "שם המשתמש שלך",
       "familyID": "מספר מזהה של המשפחה",
       "enterFamilyID": "הכניסו מספר מזהה של המשפחה",
-      "joining": "מצטרף..."
+      "joining": "מצטרף...",
+      "loading": "טוען..."
     },
     "general": {
       "guest": "אורח",
