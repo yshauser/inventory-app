@@ -1,0 +1,276 @@
+/* Settings Dialog Styles */
+.settings-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    color: black;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+  }
+  
+  .settings-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .settings-close-button-x {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .settings-close-button-x:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+  
+  .settings-content {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .settings-section {
+    margin-bottom: 24px;
+  }
+  
+  .settings-section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .settings-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a6fa5;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+  
+  .settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .settings-item:last-child {
+    border-bottom: none;
+  }
+  
+  .settings-item label {
+    font-weight: 500;
+    color: #555;
+    flex: 0 0 auto;
+    margin-right: 16px;
+  }
+  
+  .settings-item span {
+    color: #333;
+    text-align: right;
+    word-break: break-all;
+    flex: 1;
+  }
+  
+  .family-id {
+    font-family: 'Courier New', monospace;
+    background-color: #f5f5f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .family-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .family-member-item {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    transition: background-color 0.2s;
+  }
+  
+  .family-member-item:hover {
+    background: #f0f0f0;
+  }
+  
+  .member-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .member-info strong {
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .current-user-badge {
+    background: #4a6fa5;
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: normal;
+  }
+  
+  .member-email {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .no-members {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .settings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+  
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid #4a6fa5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .settings-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #d32f2f;
+    text-align: center;
+  }
+  
+  .retry-button {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .retry-button:hover {
+    background: #3a5683;
+  }
+  
+  .settings-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .settings-close-button {
+    padding: 10px 24px;
+    background: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+  }
+  
+  .settings-close-button:hover {
+    background: #3a5683;
+  }
+  
+  /* RTL Support */
+  [dir="rtl"] .settings-item {
+    flex-direction: inherit;
+  }
+  
+  [dir="rtl"] .settings-item label {
+    margin-right: 0;
+    margin-left: 16px;
+  }
+  
+  [dir="rtl"] .settings-item span {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .member-info {
+    flex-direction: inherit;
+  }
+  
+  /* Mobile responsiveness */
+  @media screen and (max-width: 480px) {
+    .settings-modal-content {
+      width: 95%;
+      max-height: 85vh;
+    }
+    
+    .settings-header,
+    .settings-content,
+    .settings-footer {
+      padding: 16px;
+    }
+    
+    .settings-header h2 {
+      font-size: 1.2rem;
+    }
+    
+    .settings-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .settings-item span {
+      text-align: left;
+      width: 100%;
+    }
+    
+    [dir="rtl"] .settings-item span {
+      text-align: right;
+    }
+  }

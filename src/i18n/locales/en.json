@@ -78,7 +78,8 @@
       "backIcon": "←",
       "back": "Back",
       "create": "Create",
-      "join" : "Join Family"
+      "join" : "Join Family",
+      "retry": "Retry"
     },
     "remove": {
       "remove": "Remove Item",
@@ -95,5 +96,18 @@
       "swipeText" : "Swipe right to increase • Swipe left to decrease",
       "noItemsYet" : "No items yet. Add your first item!",
       "noitemsMatch" : "No items match your search"
+    },
+    "settings": {
+      "title": "Settings",
+      "loading": "Loading...",
+      "userInfo": "User info",
+      "username": "User name",
+      "email": "email",
+      "familyInfo": "Family info",
+      "familyId": "Family ID",
+      "familyName": "Family name",
+      "familyMembers": "Family members",
+      "currentUser": "(You)",
+      "noMembers": "No family members found"
     }
   }

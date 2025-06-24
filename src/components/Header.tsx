@@ -6,11 +6,13 @@ import packageJson from '../../package.json'; // Adjust path as needed
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import SwitchUserDialog from './dialogs/SwitchUserDialog';
+import SettingsDialog from './dialogs/SettingsDialog';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showSwitchUser, setShowSwitchUser] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const {t} = useTranslation();
@@ -37,6 +39,10 @@ const Header: React.FC = () => {
     setMenuOpen(false);
   };
  
+  const handleSettings = () => {
+    setShowSettings(true);
+    setMenuOpen(false);
+  }
   return (
     <>
 
@@ -60,11 +66,14 @@ const Header: React.FC = () => {
           </button>
           {isMenuOpen && (
             <div className="menu-dropdown">
-              <div onClick={() => { setShowAbout(true); setMenuOpen(false); }}>
-                {t('header.about')}
-              </div>
               <div onClick={handleSwitchUser}>
                 {t('header.switchUser')}
+              </div>
+              <div onClick={handleSettings}>
+                {t('header.settings')}
+              </div>
+              <div onClick={() => { setShowAbout(true); setMenuOpen(false); }}>
+                {t('header.about')}
               </div>
             </div>
           )}
@@ -84,6 +93,10 @@ const Header: React.FC = () => {
       <SwitchUserDialog 
         isOpen={showSwitchUser} 
         onClose={() => setShowSwitchUser(false)} 
+      />
+      <SettingsDialog 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
       />
     </>
   );

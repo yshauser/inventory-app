@@ -74,7 +74,8 @@
       "backIcon": "→",
       "back":"חזרה",
       "create": "יצירה",
-      "join" : "הצטרפות"
+      "join" : "הצטרפות",
+      "retry": "נסה שוב"
     },
     "remove": {
       "remove": "הסר מוצר",
@@ -91,5 +92,18 @@
       "swipeText" : " החלק ימינה להוספה • החלק שמאלה להפחתה",
       "noItemsYet" : "אין עדיין מוצרים. היה הראשון להוסיף!",
       "noitemsMatch" : "לא נמצאו מוצרים תואמים"
+    },
+    "settings": {
+      "title": "הגדרות",
+      "loading": "טוען...",
+      "userInfo": "מידע משתמש",
+      "username": "שם משתמש",
+      "email": "אימייל",
+      "familyInfo": "מידע משפחה",
+      "familyId": "מזהה משפחה",
+      "familyName": "שם משפחה",
+      "familyMembers": "חברי המשפחה",
+      "currentUser": "(את/ה)",
+      "noMembers": "לא נמצאו חברי משפחה"
     }
   }
