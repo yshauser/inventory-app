@@ -10,6 +10,8 @@ const LoginScreen: React.FC = () => {
   const [showSetup, setShowSetup] = useState(false);
   const [setupEmail, setSetupEmail] = useState('');
   const { loginWithGoogle,pendingRedirectAuth } = useAuth();
+  const { isProcessingRedirect, firebaseUser } = useAuth();
+
 
   const {t} = useTranslation();
 
@@ -20,6 +22,15 @@ const LoginScreen: React.FC = () => {
       setShowSetup(true);
     }
   }, [pendingRedirectAuth]);
+
+  useEffect(() => {
+  console.log('Auth debug:', { 
+    isProcessingRedirect, 
+    pendingRedirectAuth, 
+    firebaseUser: firebaseUser?.email,
+    url: window.location.href 
+  });
+}, [isProcessingRedirect, pendingRedirectAuth, firebaseUser]);
   
   const handleGoogleLogin = async () => {
     setError('');

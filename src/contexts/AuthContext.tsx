@@ -13,6 +13,7 @@ import {
   signInWithPopup, 
   signInWithRedirect,
   getRedirectResult,
+  browserPopupRedirectResolver,
   GoogleAuthProvider, 
   signOut as firebaseSignOut,
   onAuthStateChanged, 
@@ -37,6 +38,12 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// console.log('Startup:', {
+//   search: window.location.search,
+//   hash: window.location.hash,
+//   localStorageRedirect: localStorage.getItem('firebaseAuthRedirect'),
+//   sessionRedirect: sessionStorage.getItem('firebase:redirectUser')
+// });
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -54,21 +61,27 @@ interface AuthProviderProps {
 const isMobileDevice = (): boolean => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
          ((navigator.maxTouchPoints !== undefined) && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
-  // return /Mobi|Android|iPhone/i.test(navigator.userAgent);
 };
 
 // Helper function to check if this is likely a redirect result
 const isLikelyRedirectResult = (): boolean => {
   // Check URL parameters that Firebase adds after redirect
   const urlParams = new URLSearchParams(window.location.search);
-  const hasFirebaseParams = urlParams.has('state') || urlParams.has('code') || 
+  console.log ('is likely', {urlParams},'window:',window.location.search)
+  const hasFirebaseParams = urlParams.has('state') || urlParams.has('code') || urlParams.has('authuser')|| urlParams.has('prompt')||
                            window.location.hash.includes('access_token') ||
-                           window.location.search.includes('authuser');
+                           window.location.search.includes('authuser') ||
+                           window.location.search.includes('oauth_token');
   
   // Check if we have a stored redirect state
   const hasStoredRedirectState = localStorage.getItem('firebaseAuthRedirect') === 'true';
   
-  return hasFirebaseParams || hasStoredRedirectState;
+  // Check session storage (Firebase sometimes uses this)
+  const hasSessionRedirectState = sessionStorage.getItem('firebase:redirectUser') !== null;
+  
+  console.log('Redirect detection:', { hasFirebaseParams, hasStoredRedirectState, hasSessionRedirectState, url: window.location.href });
+  
+  return hasFirebaseParams || hasStoredRedirectState || hasSessionRedirectState;
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -80,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [pendingRedirectAuth, setPendingRedirectAuth] = useState<{ needsSetup?: boolean; email?: string } | null>(null);
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(false);
+  
 
   // Helper function to update family-related state
   const updateFamilyContext = (newUser: User | null) => {
@@ -117,6 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const clearRedirectAuthState = () => {
     localStorage.removeItem('pendingRedirectAuth');
+    localStorage.removeItem('firebaseAuthRedirect');
+    localStorage.removeItem('firebaseAuthRedirectTime');
   };
 
    // Handle Google authentication result
@@ -145,149 +161,161 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 // Initialize auth state listener
 useEffect(() => {
   let redirectProcessed = false;
+  let initializationComplete = false;
+  
+  const initializeAuth = async () => {
+    console.log('Initializing auth...');
 
-  const handleRedirect = async () => {
-    console.log ('in handle redirect');
-    try {
-      const result = await getRedirectResult(auth);
-      console.log (' redirect', {result, auth});
-      if (result?.user) {
-        redirectProcessed = true;
-        setIsProcessingRedirect(true);
-        setFirebaseUser(result.user);
-        const authResult = await handleGoogleAuthResult(result.user);
-        if (authResult.success) {
-          setPendingRedirectAuth(null);
-          clearRedirectAuthState();
-        } else if (authResult.needsSetup) {
-          setPendingRedirectAuth({ needsSetup: true, email: authResult.email });
-          storeRedirectAuthState({ needsSetup: true, email: authResult.email });
-        }
-        setIsProcessingRedirect(false);
-      }
-    } catch (error) {
-      console.error('Redirect error:', error);
-    }
-  };
+    // Check if this looks like a redirect scenario
+    const isRedirectScenario = isLikelyRedirectResult();
+    console.log('Is likely redirect scenario:', isRedirectScenario);
 
-  handleRedirect();
-
-  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-    console.log('Auth state changed:', firebaseUser?.email);
-    setFirebaseUser(firebaseUser);
-    if (redirectProcessed) return;
-
-    if (firebaseUser?.email) {
-      console.log ('I"m in !!!!')
+    const redirectResult = await getRedirectResult(auth, browserPopupRedirectResolver);
+if (redirectResult?.user) {
+    
+    // if (isRedirectScenario) {
+      setIsProcessingRedirect(true);
+      
+      // Wait a bit for Firebase to process the redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       try {
-        // Always check for redirect result first
-        const redirectResult = await getRedirectResult(auth);
-        console.log('Redirect result:', redirectResult);
+        console.log ('going to redeirect', {browserPopupRedirectResolver})
+        const redirectResult = await getRedirectResult(auth, browserPopupRedirectResolver);
+        console.log('Initial redirect result check:', redirectResult);
         
-        // Determine if this is a redirect scenario
-        const isRedirectScenario = redirectResult !== null || 
-        (isLikelyRedirectResult() && !redirectProcessed);
-
-        if (isRedirectScenario  && !redirectProcessed) {
-          // This is definitely a redirect result
-          console.log('Processing redirect result ');
-          redirectProcessed=true;
-          setIsProcessingRedirect(true);
-          setIsAuthenticating(false); // Clear authenticating state
+        if (redirectResult?.user) {
+          console.log('Found redirect result with user:', redirectResult.user.email);
+          redirectProcessed = true;
           
-          localStorage.removeItem('firebaseAuthRedirect');
-          const authResult = await handleGoogleAuthResult(firebaseUser);
+          // Clear the redirect flag
+          clearRedirectAuthState();
+          
+          setFirebaseUser(redirectResult.user);
+          const authResult = await handleGoogleAuthResult(redirectResult.user);
           
           if (authResult.success) {
-            // User logged in successfully
             console.log('Redirect login successful');
             setPendingRedirectAuth(null);
-            clearRedirectAuthState();
           } else if (authResult.needsSetup) {
-            // Store the setup requirement for the UI to handle
             console.log('Redirect login needs setup');
             setPendingRedirectAuth({ needsSetup: true, email: authResult.email });
             storeRedirectAuthState({ needsSetup: true, email: authResult.email });
           }
-          setIsProcessingRedirect(false);
-        } else if (!redirectProcessed) {
-          // Not a redirect result, regular auth state change
+        } else {
+          console.log('No redirect result found despite redirect indicators');
+          // Sometimes Firebase needs more time, let the auth state listener handle it
+        }
+      } catch (error) {
+        console.log ('CATCH')
+        console.error('Error checking redirect result:', error);
+      } finally {
+        console.log ('FINALLY')
+        setIsProcessingRedirect(false);
+      }
+    }
+    
+    initializationComplete = true;
+  };
+
+  // Initialize auth check
+  initializeAuth();
+
+  // Set up auth state listener
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    console.log('Auth state changed:', firebaseUser?.email);
+    setFirebaseUser(firebaseUser);
+    
+    // Wait for initialization to complete
+    if (!initializationComplete) {
+      console.log('Waiting for initialization to complete...');
+      return;
+    }
+    
+    // Skip processing if we already handled a redirect
+    if (redirectProcessed) {
+      console.log('Redirect already processed, skipping auth state change');
+      setIsLoading(false);
+      return;
+    }
+
+    if (firebaseUser?.email) {
+      console.log('Firebase user authenticated:', firebaseUser.email);
+      
+      try {
+        // Check if this might be from a redirect that we missed
+        const isRedirectScenario = isLikelyRedirectResult();
+        
+        if (isRedirectScenario && !redirectProcessed) {
+          console.log('Processing missed redirect in auth state change');
+          redirectProcessed = true;
+          clearRedirectAuthState();
+          
+          const authResult = await handleGoogleAuthResult(firebaseUser);
+          
+          if (authResult.success) {
+            setPendingRedirectAuth(null);
+          } else if (authResult.needsSetup) {
+            setPendingRedirectAuth({ needsSetup: true, email: authResult.email });
+            storeRedirectAuthState({ needsSetup: true, email: authResult.email });
+          }
+        } else {
+          // Regular auth state change (not from redirect)
           console.log('Regular auth state change, checking database for user');
           const existingUser = await getUserByEmail(firebaseUser.email);
           
           if (existingUser) {
-            // User exists in database, log them in
             console.log('Found existing user:', existingUser.username);
             setUser(existingUser);
             updateFamilyContext(existingUser);
             storeLastUser(firebaseUser.email);
-            // Clear any pending states
             setPendingRedirectAuth(null);
             clearRedirectAuthState();
           } else {
-            // User doesn't exist in database, check for pending redirect auth
             console.log('User not found in database, checking for pending redirect auth');
             const pendingState = getRedirectAuthState();
             if (pendingState && pendingState.email === firebaseUser.email) {
               console.log('Found matching pending redirect auth state');
               setPendingRedirectAuth(pendingState);
             } else {
-              // No user in database and no pending state - this shouldn't happen normally
-              // but could happen if someone manually goes to the app while logged into Firebase
-              console.log('Firebase user exists but no database user and no pending state');
+              console.log('Firebase user exists but no database user');
               setPendingRedirectAuth({ needsSetup: true, email: firebaseUser.email });
             }
           }
         }
       } catch (error) {
         console.error('Error in auth state change handler:', error);
-        setIsAuthenticating(false);
       }
     } else {
       // No Firebase user
       console.log('No Firebase user, checking for last logged in user');
       
-      // Clear any pending redirect state since user is not authenticated
       setPendingRedirectAuth(null);
       clearRedirectAuthState();
       
-      // Check for last logged in user (for auto-login without Firebase auth)
-      const lastUserEmail = getLastUser();
-      if (lastUserEmail) {
-        try {
-          const lastUser = await getUserByEmail(lastUserEmail);
-          if (lastUser) {
-            console.log('Auto-logging in last user:', lastUser.username);
-            setUser(lastUser);
-            updateFamilyContext(lastUser);
-          } else {
-            // Last user no longer exists in database
+      // Only check for last user if this isn't a redirect scenario
+      if (!isLikelyRedirectResult()) {
+        const lastUserEmail = getLastUser();
+        if (lastUserEmail) {
+          try {
+            const lastUser = await getUserByEmail(lastUserEmail);
+            if (lastUser) {
+              console.log('Auto-logging in last user:', lastUser.username);
+              setUser(lastUser);
+              updateFamilyContext(lastUser);
+            } else {
+              clearLastUser();
+            }
+          } catch (error) {
+            console.error('Error loading last user:', error);
             clearLastUser();
           }
-        } catch (error) {
-          console.error('Error loading last user:', error);
-          clearLastUser();
         }
       }
     }
     
     setIsLoading(false);
   });
-
-  // On component mount, check if we're returning from a redirect
-  const checkInitialRedirect = async () => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (result) {
-        console.log('Found redirect result on mount:', result);
-        // The onAuthStateChanged will handle this
-      }
-    } catch (error) {
-      console.error('Error checking initial redirect:', error);
-    }
-  };
-
-  checkInitialRedirect();
   
   return () => unsubscribe();
 }, []);
@@ -329,6 +357,7 @@ useEffect(() => {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
+      
       const isMobile = isMobileDevice();
       console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
   
@@ -338,16 +367,17 @@ useEffect(() => {
         
         // Store flag to indicate we're starting a redirect
         localStorage.setItem('firebaseAuthRedirect', 'true');
-
-        // Clear any existing redirect state before starting new flow
-        clearRedirectAuthState();
-        setPendingRedirectAuth(null);
+        // Also store timestamp to help with debugging
+        localStorage.setItem('firebaseAuthRedirectTime', Date.now().toString());
+        console.log ('local storage', localStorage.getItem('firebaseAuthRedirect'));
         
-        await signInWithRedirect(auth, provider);
+        // Clear any existing states before starting new flow
+        setPendingRedirectAuth(null);
+        clearRedirectAuthState();
+        
+        await signInWithRedirect(auth, provider,browserPopupRedirectResolver);
         
         // For redirect, we return a pending state since the result will come later
-        // The actual result will be handled in the onAuthStateChanged listener
-        // Note: this return won't actually be used since the page redirects
         return { success: false, needsSetup: false };
       } else {
         // Use popup for desktop devices
@@ -356,14 +386,14 @@ useEffect(() => {
         console.log('Popup result:', result);
         
         const authResult = await handleGoogleAuthResult(result.user);
-        setIsAuthenticating(false);
         return authResult;
       }      
     } catch (error) {
       console.error('Error during Google login:', error);
-      setIsAuthenticating(false);
-      localStorage.removeItem('firebaseAuthRedirect');
+      clearRedirectAuthState();
       return { success: false };
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -441,13 +471,13 @@ useEffect(() => {
     }
   };
 
-    // Effect to handle pending redirect auth state
-    useEffect(() => {
-      if (pendingRedirectAuth?.needsSetup && pendingRedirectAuth?.email && !user) {
-        // This will trigger the setup dialog in components that check for this state
-        console.log('Pending redirect auth setup needed for:', pendingRedirectAuth.email);
-      }
-    }, [pendingRedirectAuth, user]);
+  // Effect to handle pending redirect auth state
+  useEffect(() => {
+    if (pendingRedirectAuth?.needsSetup && pendingRedirectAuth?.email && !user) {
+      // This will trigger the setup dialog in components that check for this state
+      console.log('Pending redirect auth setup needed for:', pendingRedirectAuth.email);
+    }
+  }, [pendingRedirectAuth, user]);
 
   const value = {
     user,
@@ -461,7 +491,7 @@ useEffect(() => {
     logout,
     isLoading,
     isAuthenticating,
-    pendingRedirectAuth, // Expose the pending redirect auth state for components to use
+    pendingRedirectAuth,
     isProcessingRedirect
   };
 
