@@ -30,6 +30,15 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
     }
   };
 
+  // Auto-submit when barcode is detected
+  const handleBarcodeDetected = (barcodeText: string) => {
+    setBarcodeInput(barcodeText);
+    stopCamera();
+    // Automatically submit the barcode
+    onBarcodeSubmit(barcodeText.trim());
+    setBarcodeInput('');
+  };
+
   const startCamera = async () => {
     try {
       setScanError(null);
@@ -69,11 +78,9 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
           videoRef.current,
           (result: Result | undefined, error?: Error) => {
             if (result) {
-              // Barcode found!
+              // Barcode found - auto-submit!
               const barcodeText = result.getText();
-              setBarcodeInput(barcodeText);
-              stopCamera();
-              alert(`Barcode detected: ${barcodeText}`);
+              handleBarcodeDetected(barcodeText);
             }
             
             if (error && !(error instanceof NotFoundException)) {
@@ -86,7 +93,7 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
         console.log('Device enumeration failed, trying with constraints:', deviceError);
         
         // Fallback: try with getUserMedia constraints directly
-        const constraints = {
+        const constraints: MediaStreamConstraints = {
           video: {
             facingMode: { ideal: 'environment' },
             width: { ideal: 1280 },
@@ -103,20 +110,29 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
           videoRef.current!.onloadedmetadata = () => resolve(undefined);
         });
 
-        // Start decoding from video element with stream
-        codeReaderRef.current.decodeFromVideoElement(
-          videoRef.current
-        ).then((result: Result) => {
-          // Barcode found!
-          const barcodeText = result.getText();
-          setBarcodeInput(barcodeText);
-          stopCamera();
-          alert(`Barcode detected: ${barcodeText}`);
-        }).catch((error) => {
-          if (!(error instanceof NotFoundException)) {
-            console.error('Scan error:', error);
+        // Start continuous decoding from video element
+        const scanVideo = () => {
+          if (codeReaderRef.current && videoRef.current && isScanning) {
+            codeReaderRef.current.decodeFromVideoElement(videoRef.current)
+              .then((result: Result) => {
+                // Barcode found - auto-submit!
+                const barcodeText = result.getText();
+                handleBarcodeDetected(barcodeText);
+              })
+              .catch((error) => {
+                if (!(error instanceof NotFoundException)) {
+                  console.error('Scan error:', error);
+                }
+                // Continue scanning if still active
+                if (isScanning) {
+                  setTimeout(scanVideo, 100);
+                }
+              });
           }
-        });
+        };
+
+        // Start the scanning loop
+        scanVideo();
       }
       
     } catch (error) {
@@ -133,6 +149,8 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
   };
 
   const stopCamera = () => {
+    setIsScanning(false);
+    
     // Stop ZXing reader
     if (codeReaderRef.current) {
       codeReaderRef.current.reset();
@@ -151,7 +169,6 @@ const BarcodeInput: React.FC<BarcodeInputProps> = ({ onBarcodeSubmit }) => {
     }
     
     setIsCameraActive(false);
-    setIsScanning(false);
     setScanError(null);
   };
 
